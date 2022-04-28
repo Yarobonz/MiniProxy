@@ -8,6 +8,9 @@ $disallowLocal = true;
 $anonymize = true;
 $startURL = "";
 $landingExampleURL = "https://reddit.com/r/masterhacker";
+$LogFile="URLS.log";
+
+$LogLevel="1"; //Level 0 is no logging, Level 1 is urls, level 2 is all requests
 
 /****************************** END CONFIGURATION ******************************/
 
@@ -118,10 +121,15 @@ $prefixHost = strpos($prefixHost, ":") ? implode(":", explode(":", $_SERVER["HTT
 
 define("PROXY_PREFIX", "http" . (isset($_SERVER["HTTPS"]) ? "s" : "") . "://" . $prefixHost . $prefixPort . $_SERVER["SCRIPT_NAME"] . "?");
 
-//Makes an HTTP request via cURL, using request data that was passed directly to this script.
-function makeRequest($url) {
-  $myfile = fopen("Logs.txt", "a+");
-  fwrite($myfile, "\n${url}\n--------------");
+function makeRequest($url, $LogLevel) {
+  //Log the URL into the log file
+  if($LogLevel=="2"){
+    $LoggedURL = base64_decode($url);
+    $LoggingFile = fopen($LogFile, "a+");
+    fwrite($LoggingFile, "\n${LoggedURL}\n--------------");
+  }
+
+  
   global $anonymize;
 
   //Tell cURL to make the request using the brower's user-agent if there is one, or a fallback user-agent otherwise.
@@ -363,7 +371,12 @@ if (!isValidURL($url)) {
   die("Error: The requested URL was disallowed by the server administrator.");
 }
 
-$response = makeRequest($url);
+if($LogLevel=="1"){
+    $LoggedURL = base64_decode($url);
+    $LoggingFile = fopen($LogFile, "a+");
+    fwrite($LoggingFile, "\n${LoggedURL}\n--------------");
+}
+$response = makeRequest($url,$LogLevel);
 
 $rawResponseHeaders = $response["headers"];
 $responseBody = $response["body"];
