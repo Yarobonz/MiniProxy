@@ -294,7 +294,7 @@ function proxifySrcset($srcset, $baseURL) {
 
 //Extract and sanitize the requested URL, handling cases where forms have been rewritten to point to the proxy.
 if (isset($_POST["AnySchoolFormAction"])) {
-  $url = $_POST["AnySchoolFormAction"];
+  $url = base64_decode($_POST["AnySchoolFormAction"]);
   unset($_POST["AnySchoolFormAction"]);
 } else {
   $queryParams = [];
@@ -303,7 +303,7 @@ if (isset($_POST["AnySchoolFormAction"])) {
   if (isset($queryParams["AnySchoolFormAction"])) {
     $formAction = $queryParams["AnySchoolFormAction"];
     unset($queryParams["AnySchoolFormAction"]);
-    $url = $formAction . "?" . http_build_query($queryParams);
+    $url = $formAction . "?" . http_build_query(base64_decode($queryParams));
   } else {
     $url = substr($_SERVER["REQUEST_URI"], strlen($_SERVER["SCRIPT_NAME"]) + 1);
   }
@@ -339,7 +339,6 @@ if (empty($url)) {
       
       
       </form>
-      
       
       
       
@@ -382,8 +381,6 @@ $rawResponseHeaders = $response["headers"];
 $responseBody = $response["body"];
 $responseInfo = $response["responseInfo"];
 
-//If CURLOPT_FOLLOWLOCATION landed the proxy at a diferent URL than
-//what was requested, explicitly redirect the proxy there.
 $responseURL = $responseInfo["url"];
 $DecodedURL=base64_decode(str_replace("http:","",str_replace("https:","",str_replace("/","",$responseURL)))); //IMPORTANT
 if ($responseURL !== $url) {
